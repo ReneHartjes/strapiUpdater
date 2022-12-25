@@ -1,15 +1,45 @@
 import React, { useEffect, useState } from 'react'
+import axios from 'axios';
 import "./Datamanager.css"
 
 
 function Datamanager() {
 
     let [data2, setdata2] = useState({data:[]})
-
+    let [pw,setpw] = useState("")
+    let[login, setlogin] = useState("")
+    let[Error, setError] = useState("")
+    let [token, settoken] = useState()
     useEffect(()=>{
         fetch('https://squid-app-9h43v.ondigitalocean.app/api/documents').then(res => res.json()).then((json)=> setdata2(json)).then(()=>renderino())
     },[])
+    function handlelogin(){
 
+
+        axios
+        .post('https://squid-app-9h43v.ondigitalocean.app/api/auth/local', {
+          identifier: login,
+          password: pw,
+        })
+        .then(response => {
+          console.log('User profile', response.data.user);
+          console.log('User token', response.data.jwt);
+          localStorage.setItem("user", response.data.user)
+          localStorage.setItem("token", response.data.jwt)
+          settoken(response.data.jwt)
+          setError("success")
+          if(localStorage.getItem("token")){
+          
+          }
+        })
+        .catch(error => {
+          console.log('An error occurred:', error.response);
+          setError("failed")
+        });
+          
+          
+      }
+  
 
     function updatestuff(props){
         console.log(props)
@@ -43,7 +73,7 @@ function Datamanager() {
           })
         const requestOptions = {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Authorization:`Bearer ${token}` },
             body: reqbody
         };
         fetch('https://squid-app-9h43v.ondigitalocean.app/api/documents/'+id, requestOptions)
@@ -84,7 +114,15 @@ function Datamanager() {
     <div>
 
             {renderino()}
-
+            <div>
+            <p>Login:</p>
+                    <input name="login" onChange={(e)=>setlogin(e.target.value)} type="text"/>
+                    <p>Username: </p>
+                    <input name="pw" onChange={(e)=>setpw(e.target.value)} type="password"/>
+                    <br />
+                    {Error}
+                    <button onClick={()=>handlelogin()}>submit</button>
+            </div>
     </div>
 
   )
